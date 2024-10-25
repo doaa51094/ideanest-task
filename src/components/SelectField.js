@@ -1,22 +1,4 @@
-// src/components/SelectField.js
 
-// const SelectField = ({ label, options, ...props }) => {
-//   return (
-//     <div className="mb-4">
-//       <label className="block mb-1">{label}</label>
-//       <select className="border rounded p-2 w-full" {...props}>
-//         <option value="">Select...</option>
-//         {options.map((option) => (
-//           <option key={option.value} value={option.value}>
-//             {option.label}
-//           </option>
-//         ))}
-//       </select>
-//     </div>
-//   );
-// };
-
-// export default SelectField;
 import React, { forwardRef } from 'react';
 
 const SelectField = forwardRef(({ label, options, ...props }, ref) => {

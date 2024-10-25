@@ -6,13 +6,18 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faClipboardCheck,
   faClipboardList,
+  faPencil,
   faSeedling,
+  faTrashCan,
 } from "@fortawesome/free-solid-svg-icons";
+import { useState } from "react";
 
 const UserList = () => {
+  const [filterState, setFilterState] = useState("all");
+  const [filterPriority, setFilterPriority] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const dispatch = useDispatch();
   const users = useSelector((store) => store.users);
-  console.log(users);
 
   const handleRemoveUser = (id) => {
     dispatch(deleteUser({ id }));
@@ -43,37 +48,17 @@ const UserList = () => {
             <div className="flex gap-4">
               <Link to={`edit-user/${user.id}`}>
                 <button>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                    />
-                  </svg>
+                  <FontAwesomeIcon
+                    icon={faPencil}
+                    className="text-[20px] text-[#301d8b]"
+                  />
                 </button>
               </Link>
               <button onClick={() => handleRemoveUser(user.id)}>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                  />
-                </svg>
+                <FontAwesomeIcon
+                  icon={faTrashCan}
+                  className="text-[20px] text-[#301d8b]"
+                />
               </button>
             </div>
           </div>
@@ -81,59 +66,109 @@ const UserList = () => {
       </div>
     ));
 
-  // Filter users by state
-  const todoUsers = users.filter((user) => user.state === "todo");
-  const doingUsers = users.filter((user) => user.state === "doing");
-  const doneUsers = users.filter((user) => user.state === "done");
+  // Filter users by state, priority, and search query
+  const filteredUsers = users.filter((user) => {
+    const stateMatch = filterState === "all" || user.state === filterState;
+    const priorityMatch =
+      filterPriority === "all" || user.priority === filterPriority;
+    const nameMatch = user.title
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    return stateMatch && priorityMatch && nameMatch;
+  });
+
+  const getUsersByState = (state) =>
+    filteredUsers.filter((user) => user.state === state);
 
   return (
-    <div className="container flex flex-col justify-center">
-      <div className="p-16 flex justify-center items-start gap-5">
-        {/* To-Do Section */}
-        <div className="bg-[#d5ccff] min-h-40 rounded-md p-5 w-full">
+    <div className="container w-[90%] flex flex-col justify-center">
+      <div className="flex mb-5 gap-4">
+        <label htmlFor="search-query" className="font-bold text-lg">
+          Search by Name:
+        </label>
+        <input
+          type="text"
+          id="search-query"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Enter name"
+          className="mb-2 px-2 py-1 border rounded"
+        />
+
+        <label htmlFor="state-filter" className="font-bold text-lg">
+          Filter by State:
+        </label>
+        <select
+          id="state-filter"
+          onChange={(e) => setFilterState(e.target.value)}
+          className="mb-2"
+        >
+          <option value="all">All States</option>
+          <option value="todo">To Do</option>
+          <option value="doing">Doing</option>
+          <option value="done">Done</option>
+        </select>
+
+        <label htmlFor="priority-filter" className="font-bold text-lg">
+          Filter by Priority:
+        </label>
+        <select
+          id="priority-filter"
+          onChange={(e) => setFilterPriority(e.target.value)}
+        >
+          <option value="all">All Priorities</option>
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+        </select>
+      </div>
+
+      <div className="py-16 flex justify-center items-start gap-5">
+        <div className="bg-[#d5ccff] min-h-40 rounded-md p-5 w-full text-[#301d8b]">
           <FontAwesomeIcon
             icon={faClipboardList}
             className="mr-2 text-[25px]"
           />
           To-Do
           <div className="list text-[25px]">
-            {todoUsers.length ? (
-              renderCard(todoUsers)
+            {getUsersByState("todo").length ? (
+              renderCard(getUsersByState("todo"))
             ) : (
-              <p className="text-center col-span-2 text-gray-700 font-medium">
+              <p className="text-center col-span-2 text-gray-700 font-medium mt-9">
                 No Tasks
               </p>
             )}
           </div>
         </div>
 
-        {/* Doing Section */}
-        <div className="bg-[#d5ccff] min-h-40 rounded-md p-5 w-full">
-          <FontAwesomeIcon icon={faSeedling} className="mr-2 text-[25px]" />
+        <div className="bg-[#d5ccff] min-h-40 rounded-md p-5 w-full text-[#301d8b]">
+          <FontAwesomeIcon
+            icon={faSeedling}
+            className="mr-2 text-[25px] text-[#301d8b]"
+          />
           Doing
           <div className="list text-[25px]">
-            {doingUsers.length ? (
-              renderCard(doingUsers)
+            {getUsersByState("doing").length ? (
+              renderCard(getUsersByState("doing"))
             ) : (
-              <p className="text-center col-span-2 text-gray-700 font-medium">
+              <p className="text-center col-span-2 text-gray-700 font-medium mt-9">
                 No Tasks
               </p>
             )}
           </div>
         </div>
 
-        {/* Done Section */}
-        <div className="bg-[#d5ccff] min-h-40 rounded-md p-5 w-full">
+        <div className="bg-[#d5ccff] min-h-40 rounded-md p-5 w-full text-[#301d8b]">
           <FontAwesomeIcon
             icon={faClipboardCheck}
             className="mr-2 text-[25px]"
           />
           Done
           <div className="list text-[25px]">
-            {doneUsers.length ? (
-              renderCard(doneUsers)
+            {getUsersByState("done").length ? (
+              renderCard(getUsersByState("done"))
             ) : (
-              <p className="text-center col-span-2 text-gray-700 font-medium">
+              <p className="text-center col-span-2 text-gray-700 font-medium mt-9">
                 No Tasks
               </p>
             )}
