@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { deleteTask, updateTask } from "./taskSlice";
@@ -9,116 +10,102 @@ import {
   faSeedling,
   faTrashCan,
 } from "@fortawesome/free-solid-svg-icons";
-import { useState } from "react";
-import React from "react";
 import DropArea from "../components/DropArea";
 import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
+
 const TaskList = () => {
   const [filterState, setFilterState] = useState("all");
   const [filterPriority, setFilterPriority] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [ActiveCard, setActiveCard] = useState(null);
+  const [activeCard, setActiveCard] = useState(null);
+
   const dispatch = useDispatch();
   const tasks = useSelector((store) => store.tasks);
-  const {  user } = useKindeAuth();
+  const { user } = useKindeAuth();
   const userId = user?.id;
-   tasks.filter(task => task.userId === userId);
-   const userTasks = tasks.filter(task => task.userId === userId);
+  
+  // Filter tasks based on userId
+  const userTasks = userId ? tasks.filter((task) => task.userId === userId) : tasks;
 
-console.log(userTasks,userId,"💻💻💻");
-  const handleRemoveTask = (id) => {
-    dispatch(deleteTask({ id }));
-  };
+  const handleRemoveTask = (id) => dispatch(deleteTask({ id }));
+
   const onDrop = (col, index) => {
-    console.log(ActiveCard, `going to place ${col} at position ${index}`);
-    if (ActiveCard === null) {
-      return;
-    }
-    const taskToMove = userTasks.find((task) => task.id === ActiveCard);
-    const updatedTasks = userTasks.filter((task) => task.id !== ActiveCard);
+    if (!activeCard) return;
+    
+    const taskToMove = userTasks.find((task) => task.id === activeCard);
+    const updatedTasks = userTasks.filter((task) => task.id !== activeCard);
 
-    const state = col === 1 ? "todo" : col === 2 ? "doing" : "done";
-    const newUser = { ...taskToMove, column: col, state };
-    updatedTasks.splice(index, 0, newUser);
+    const newState = col === 1 ? "todo" : col === 2 ? "doing" : "done";
+    const updatedTask = { ...taskToMove, column: col, state: newState };
 
+    updatedTasks.splice(index, 0, updatedTask);
     dispatch(updateTask({ updatedTasks }));
     setActiveCard(null);
   };
 
-  const renderCard = (filteredUsers) =>
-    filteredUsers.map((task, index) => (
-      <React.Fragment key={task.id}>
-        <div
-          draggable
-          onDragStart={() => setActiveCard(task?.id)}
-          onDragEnd={() => setActiveCard(null)}
-          className="card flex items-center justify-between bg-[#f4f2ff] rounded-md p-5 mt-2"
-        >
-          <div>
-            <img
-              src={task.image}
-              alt={task.title}
-              className="w-[400px] h-[180px] object-cover rounded-md"
-            />
-            <h3 className="font-bold text-lg text-gray-700 text-[20px]">
-              {task.title}
-            </h3>
-            <p className="font-normal text-gray-600 text-[18px]">
-              {task.description}
-            </p>
-            <div className="flex justify-between items-center">
-              <p
-                className={`font-normal text-white text-[18px] px-6 py-1 rounded ${
-                  task.priority === "low"
-                    ? "bg-red-500"
-                    : task.priority === "medium"
-                    ? "bg-yellow-500"
-                    : task.priority === "high"
-                    ? "bg-green-500"
-                    : "bg-gray-300"
-                }`}
-              >
-                {task.priority}
-              </p>
-              <div className="flex gap-4">
-                <Link to={`edit-task/${task.id}`}>
-                  <button>
-                    <FontAwesomeIcon
-                      icon={faPencil}
-                      className="text-[20px] text-[#301d8b]"
-                    />
-                  </button>
-                </Link>
-                <button onClick={() => handleRemoveTask(task.id)}>
-                  <FontAwesomeIcon
-                    icon={faTrashCan}
-                    className="text-[20px] text-[#301d8b]"
-                  />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-        <DropArea onDrop={() => onDrop(task.column, index + 1)} />
-      </React.Fragment>
-    ));
-
-  const filteredUsers = userTasks.filter((task) => {
+  const filteredTasks = userTasks.filter((task) => {
     const stateMatch = filterState === "all" || task.state === filterState;
-    const priorityMatch =
-      filterPriority === "all" || task.priority === filterPriority;
-    const nameMatch = task.title
-      ?.toLowerCase()
-      .includes(searchQuery.toLowerCase());
-    return stateMatch && priorityMatch && nameMatch;
+    const priorityMatch = filterPriority === "all" || task.priority === filterPriority;
+    const searchMatch = task.title?.toLowerCase().includes(searchQuery.toLowerCase());
+    return stateMatch && priorityMatch && searchMatch;
   });
 
-  const getTaskByState = (state) =>
-    filteredUsers.filter((task) => task.state === state);
+  const renderTaskCard = (task) => (
+    <div
+      key={task.id}
+      draggable
+      onDragStart={() => setActiveCard(task.id)}
+      onDragEnd={() => setActiveCard(null)}
+      className="card flex items-center justify-between bg-[#f4f2ff] rounded-md p-5 mt-2"
+    >
+      <div>
+        <img src={task.image} alt={task.title} className="w-[400px] h-[180px] object-cover rounded-md" />
+        <h3 className="font-bold text-lg text-gray-700 text-[20px]">{task.title}</h3>
+        <p className="font-normal text-gray-600 text-[18px]">{task.description}</p>
+        <div className="flex justify-between items-center">
+          <p
+            className={`font-normal text-white text-[18px] px-6 py-1 rounded ${
+              task.priority === "low"
+                ? "bg-red-500"
+                : task.priority === "medium"
+                ? "bg-yellow-500"
+                : task.priority === "high"
+                ? "bg-green-500"
+                : "bg-gray-300"
+            }`}
+          >
+            {task.priority}
+          </p>
+          {userId && (
+            <div className="flex gap-4">
+              <Link to={`edit-task/${task.id}`}>
+                <FontAwesomeIcon icon={faPencil} className="text-[20px] text-[#301d8b]" />
+              </Link>
+              <button onClick={() => handleRemoveTask(task.id)}>
+                <FontAwesomeIcon icon={faTrashCan} className="text-[20px] text-[#301d8b]" />
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderTaskColumn = (tasks, title, icon, dropCol) => (
+    <div className="bg-[#d5ccff] min-h-40 rounded-md p-5 w-full text-[#301d8b]">
+      <FontAwesomeIcon icon={icon} className="mr-2 text-[25px]" /> {title}
+      <div className="list text-[25px]">
+        <DropArea onDrop={() => onDrop(dropCol, 0)} />
+        {tasks.length ? tasks.map(renderTaskCard) : (
+          <p className="text-center col-span-2 text-gray-700 font-medium text-[18px]">No Tasks</p>
+        )}
+      </div>
+    </div>
+  );
 
   return (
     <div className="container w-[90%] flex flex-col justify-center py-12">
-      <div className="flex justify-between items-center mb-5 gap-4">
+      <div className="flex justify-between items-center mb-5 gap-4 flex-col lg:flex-row">
         <input
           type="text"
           id="search-query"
@@ -129,8 +116,7 @@ console.log(userTasks,userId,"💻💻💻");
         />
         <div className="flex gap-4 items-center justify-center">
           <select
-            className="py-2 px-3 rounded text-[#301d8b] "
-            id="state-filter"
+            className="py-2 px-3 rounded text-[#301d8b]"
             onChange={(e) => setFilterState(e.target.value)}
           >
             <option value="all">All States</option>
@@ -138,10 +124,8 @@ console.log(userTasks,userId,"💻💻💻");
             <option value="doing">Doing</option>
             <option value="done">Done</option>
           </select>
-
           <select
-            className="py-2 px-3 rounded text-[#301d8b] "
-            id="priority-filter"
+            className="py-2 px-3 rounded text-[#301d8b]"
             onChange={(e) => setFilterPriority(e.target.value)}
           >
             <option value="all">All Priorities</option>
@@ -152,68 +136,28 @@ console.log(userTasks,userId,"💻💻💻");
         </div>
       </div>
 
-      <div className=" flex justify-center items-start gap-5">
-        <div className="bg-[#d5ccff] min-h-40 rounded-md p-5 w-full text-[#301d8b]">
-          <FontAwesomeIcon
-            icon={faClipboardList}
-            className="mr-2 text-[25px]"
-          />
-          To-Do
-          <div className="list text-[25px]">
-            <DropArea onDrop={() => onDrop(1, 0)} />
-            {getTaskByState("todo").length ? (
-              <>{renderCard(getTaskByState("todo"))}</>
-            ) : (
-              <p className="text-center col-span-2 text-gray-700 font-medium text-[18px]">
-                No Tasks
-              </p>
-            )}
-          </div>
-        </div>
+      <div className="flex justify-center items-start gap-5 flex-col lg:flex-row">
+        {renderTaskColumn(filteredTasks.filter((task) => task.state === "todo"), "To-Do", faClipboardList, 1)}
+        {renderTaskColumn(filteredTasks.filter((task) => task.state === "doing"), "Doing", faSeedling, 2)}
+        {renderTaskColumn(filteredTasks.filter((task) => task.state === "done"), "Done", faClipboardCheck, 3)}
+      </div>
 
-        <div className="bg-[#d5ccff] min-h-40 rounded-md p-5 w-full text-[#301d8b]">
-          <FontAwesomeIcon
-            icon={faSeedling}
-            className="mr-2 text-[25px] text-[#301d8b]"
-          />
-          Doing
-          <div className="list text-[25px]">
-            <DropArea onDrop={() => onDrop(2, 0)} />
-            {getTaskByState("doing").length ? (
-              <>{renderCard(getTaskByState("doing"))}</>
-            ) : (
-              <p className="text-center col-span-2 text-gray-700 font-medium text-[18px]">
-                No Tasks
-              </p>
-            )}
-          </div>
-        </div>
-        <div className="w-full flex justify-center items-center flex-col">
-          <div className="bg-[#d5ccff] min-h-40 rounded-md p-5 w-full text-[#301d8b]">
-            <FontAwesomeIcon
-              icon={faClipboardCheck}
-              className="mr-2 text-[25px]"
-            />
-            Done
-            <div className="list text-[25px]">
-              <DropArea onDrop={() => onDrop(3, 0)} />
-
-              {getTaskByState("done").length ? (
-                <>{renderCard(getTaskByState("done"))}</>
-              ) : (
-                <p className="text-center col-span-2 text-gray-700 font-medium text-[18px]">
-                  No Tasks
-                </p>
-              )}
-            </div>
-          </div>
+      <div className="w-full flex justify-center items-center flex-col">
+        {userId ? (
           <Link
             to="/add-task"
-            className="bg-[#301d8b] text-white font-medium leading-6 text-xl mt-5 px-12 py-3 rounded-md self-end "
+            className="bg-[#301d8b] text-white font-medium leading-6 text-xl mt-5 px-12 py-3 rounded-md"
           >
             Add Task
           </Link>
-        </div>
+        ) : (
+          <button
+            disabled
+            className="bg-gray-400 text-white font-medium leading-6 text-xl mt-5 px-12 py-3 rounded-md cursor-not-allowed"
+          >
+            Add Task
+          </button>
+        )}
       </div>
     </div>
   );

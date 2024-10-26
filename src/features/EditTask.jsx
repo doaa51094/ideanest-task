@@ -56,7 +56,7 @@ const EditTask = () => {
   };
 
   return (
-    <div className="mt-10 bg-[#d5ccff] w-1/3 p-7 rounded-md shadow-md">
+    <div className="mt-10 bg-[#d5ccff] lg:w-1/3 p-7 rounded-md shadow-md">
       <h2 className="text-center text-[#301d8b] text-[25px] font-medium">
         Edit Task
       </h2>

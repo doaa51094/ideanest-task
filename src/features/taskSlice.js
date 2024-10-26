@@ -13,7 +13,8 @@ const taskSlice = createSlice({
     },
     updateTask: (state, action) => {
       const {updatedTasks} = action.payload;
-      const existingUser = state.find(user => user.id === updatedTasks?.id);
+      localStorage.setItem("tasks", JSON.stringify(updatedTasks)); 
+
     return updatedTasks;
     },
     editTask: (state, action) => {
@@ -28,7 +29,10 @@ const taskSlice = createSlice({
       const { id } = action.payload;
       const existingUser = state.find(user => user.id === id);
       if (existingUser) {
-        return state.filter(user => user.id !== id);
+        const deletedTask=state.filter(user => user.id !== id)
+        localStorage.setItem("tasks", JSON.stringify(deletedTask)); 
+
+        return deletedTask;
       }
     },
   }
