@@ -1,27 +1,25 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
-import Button from "./../components/Button";
-import TextField from "./../components/TextField";
-import SelectField from './../components/SelectField'; // Ensure you import SelectField
-import { editUser } from "./userSlice";
+import Button from "../components/Button";
+import TextField from "../components/TextField";
+import SelectField from "../components/SelectField";
+import { editTask } from "./taskSlice";
 
-const EditUser = () => {
+const EditTask = () => {
   const params = useParams();
   const dispatch = useDispatch();
-  const users = useSelector((store) => store.users);
+  const tasks = useSelector((store) => store.tasks);
   const navigate = useNavigate();
 
-  // Find existing user
-  const existingUser = users.find((user) => user.id === params.id);
-  
-  // Initialize state with existing user data
+  const existingUser = tasks.find((user) => user.id === params.id);
+
   const [values, setValues] = useState({
-    image: existingUser.image || "",
-    title: existingUser.title || "",
-    description: existingUser.description || "",
-    priority: existingUser.priority || "",
-    state: existingUser.state || "",
+    image: existingUser?.image || "",
+    title: existingUser?.title || "",
+    description: existingUser?.description || "",
+    priority: existingUser?.priority || "",
+    state: existingUser?.state || "",
   });
 
   useEffect(() => {
@@ -38,9 +36,9 @@ const EditUser = () => {
 
   const handleEditUser = () => {
     dispatch(
-      editUser({
+      editTask({
         id: params.id,
-        ...values, // Spread the updated values
+        ...values,
       })
     );
     navigate("/");
@@ -51,30 +49,35 @@ const EditUser = () => {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setValues((prevValues) => ({ ...prevValues, image: reader.result })); // Set the image as a data URL
+        setValues((prevValues) => ({ ...prevValues, image: reader.result }));
       };
-      reader.readAsDataURL(file); // Read the file as a data URL
+      reader.readAsDataURL(file);
     }
   };
 
   return (
-    <div className="mt-10 max-w-xl mx-auto">
+    <div className="mt-10 bg-[#d5ccff] w-1/3 p-7 rounded-md shadow-md">
+      <h2 className="text-center text-[#301d8b] text-[25px] font-medium">
+        Edit Task
+      </h2>
+
       <label className="block text-sm font-medium text-gray-700">Image</label>
       <input
         type="file"
         accept="image/*"
-        onChange={handleImageChange} // Call handleImageChange on file input change
-        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+        onChange={handleImageChange}
+        className="mt-1 border rounded p-2 w-full bg-white"
       />
-      {values.image && <img src={values.image} alt="Preview" className="mt-2 w-32 h-32 object-cover" />} {/* Image preview */}
-      
+      {values.image && (
+        <img src={values.image} alt="Preview" className="mt-2 w-32 h-32 object-cover" />
+      )}
+
       <TextField
         label="Title"
         value={values.title}
         onChange={(e) => setValues({ ...values, title: e.target.value })}
-        inputProps={{ type: "text", placeholder: "John Doe" }}
+        inputProps={{ type: "text", placeholder: "Title" }}
       />
-      <br />
       <TextField
         label="Description"
         value={values.description}
@@ -106,4 +109,4 @@ const EditUser = () => {
   );
 };
 
-export default EditUser;
+export default EditTask;

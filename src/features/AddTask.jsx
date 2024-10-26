@@ -6,22 +6,22 @@ import { v4 as uuidv4 } from "uuid";
 import Button from "../components/Button";
 import TextField from "../components/TextField";
 import SelectField from "../components/SelectField";
-import { addUser } from "./userSlice";
+import { addTask } from "./taskSlice";
 import { useNavigate } from "react-router-dom";
 import React, { useState } from "react";
+import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
 
 const AddTask = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [imagePreview, setImagePreview] = useState(null); // State for image preview
+  const [imagePreview, setImagePreview] = useState(null); 
 
-  // Updated validation schema
   const validationSchema = Yup.object().shape({
     title: Yup.string().required("Title is required"),
     description: Yup.string().required("Description is required"),
     priority: Yup.string().required("Priority is required"),
     state: Yup.string().required("State is required"),
-    image: Yup.mixed().required("Image is required"), // Ensure image is required
+    image: Yup.mixed().required("Image is required"), 
   });
 
   const {
@@ -30,20 +30,23 @@ const AddTask = () => {
     formState: { errors },
     reset,
     setValue,
-    setError, // Add setError to set custom errors
+    setError, 
   } = useForm({
     resolver: yupResolver(validationSchema),
   });
+  const {  user } = useKindeAuth();
+  console.log(user?.id,'❤️❤️❤️');
 
   const onSubmit = (data) => {
     if (!imagePreview) {
-      setError("image", { type: "manual", message: "Image is required" }); // Set custom error for image
-      return; // Prevent submission if there's no image
+      setError("image", { type: "manual", message: "Image is required" }); 
+      return; 
     }
 
     const column = data.state === "todo" ? 1 : data.state === "doing" ? 2 : 3;
     dispatch(
-      addUser({
+      addTask({
+        userId:user?.id,
         id: uuidv4(),
         title: data.title,
         image: imagePreview,
@@ -96,7 +99,7 @@ const AddTask = () => {
             <img
               src={imagePreview}
               alt="Preview"
-              className="mt-2 w-1/2 h-32 object-cover"
+              className="mt-2 h-44 object-contain rounded-md"
             />
           )}
         </div>

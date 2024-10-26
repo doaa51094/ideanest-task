@@ -5,6 +5,7 @@ import App from './App';
 import { BrowserRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { store } from './store';
+import { KindeProvider } from '@kinde-oss/kinde-auth-react';
 
 const container = document.getElementById('root');
 // Create a root.
@@ -13,9 +14,16 @@ const root = ReactDOMClient.createRoot(container);
 root.render(
   <React.StrictMode>
     <BrowserRouter>
+    <KindeProvider
+		clientId="73e38fda7e5948ce98bbe82c8bad5c59"
+		domain="https://ideanest2588.kinde.com"
+		redirectUri="http://localhost:3000"
+		logoutUri="http://localhost:3000"
+	>
       <Provider store={store}>
         <App />
       </Provider>
+      </KindeProvider>
     </BrowserRouter>
   </React.StrictMode>
 );

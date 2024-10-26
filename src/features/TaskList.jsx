@@ -1,7 +1,6 @@
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
-import Button from "../components/Button";
-import { deleteUser, editUser } from "./userSlice";
+import { deleteTask, updateTask } from "./taskSlice";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faClipboardCheck,
@@ -12,60 +11,77 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { useState } from "react";
 import React from "react";
-import DropArea from "./../components/DropArea";
-const UserList = () => {
+import DropArea from "../components/DropArea";
+import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
+const TaskList = () => {
   const [filterState, setFilterState] = useState("all");
   const [filterPriority, setFilterPriority] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [ActiveCard, setActiveCard] = useState(null);
   const dispatch = useDispatch();
-  const users = useSelector((store) => store.users);
-  const handleRemoveUser = (id) => {
-    dispatch(deleteUser({ id }));
+  const tasks = useSelector((store) => store.tasks);
+  const {  user } = useKindeAuth();
+  const userId = user?.id;
+   tasks.filter(task => task.userId === userId);
+   const userTasks = tasks.filter(task => task.userId === userId);
+
+console.log(userTasks,userId,"💻💻💻");
+  const handleRemoveTask = (id) => {
+    dispatch(deleteTask({ id }));
   };
   const onDrop = (col, index) => {
     console.log(ActiveCard, `going to place ${col} at position ${index}`);
     if (ActiveCard === null) {
       return;
     }
-    const taskToMove = users.find((user) => user.id === ActiveCard);
-    const updatedTasks = users.filter((user) => user.id !== ActiveCard);
+    const taskToMove = userTasks.find((task) => task.id === ActiveCard);
+    const updatedTasks = userTasks.filter((task) => task.id !== ActiveCard);
 
     const state = col === 1 ? "todo" : col === 2 ? "doing" : "done";
     const newUser = { ...taskToMove, column: col, state };
     updatedTasks.splice(index, 0, newUser);
 
-    dispatch(editUser({ updatedTasks }));
+    dispatch(updateTask({ updatedTasks }));
     setActiveCard(null);
   };
 
   const renderCard = (filteredUsers) =>
-    filteredUsers.map((user, index) => (
-      <React.Fragment key={user.id}>
+    filteredUsers.map((task, index) => (
+      <React.Fragment key={task.id}>
         <div
           draggable
-          onDragStart={() => setActiveCard(user?.id)}
+          onDragStart={() => setActiveCard(task?.id)}
           onDragEnd={() => setActiveCard(null)}
           className="card flex items-center justify-between bg-[#f4f2ff] rounded-md p-5 mt-2"
         >
           <div>
             <img
-              src={user.image}
-              alt={user.title}
+              src={task.image}
+              alt={task.title}
               className="w-[400px] h-[180px] object-cover rounded-md"
             />
             <h3 className="font-bold text-lg text-gray-700 text-[20px]">
-              {user.title}
+              {task.title}
             </h3>
             <p className="font-normal text-gray-600 text-[18px]">
-              {user.description}
+              {task.description}
             </p>
             <div className="flex justify-between items-center">
-              <p className="font-normal text-gray-600 text-[18px]">
-                {user.priority}
+              <p
+                className={`font-normal text-white text-[18px] px-6 py-1 rounded ${
+                  task.priority === "low"
+                    ? "bg-red-500"
+                    : task.priority === "medium"
+                    ? "bg-yellow-500"
+                    : task.priority === "high"
+                    ? "bg-green-500"
+                    : "bg-gray-300"
+                }`}
+              >
+                {task.priority}
               </p>
               <div className="flex gap-4">
-                <Link to={`edit-user/${user.id}`}>
+                <Link to={`edit-task/${task.id}`}>
                   <button>
                     <FontAwesomeIcon
                       icon={faPencil}
@@ -73,7 +89,7 @@ const UserList = () => {
                     />
                   </button>
                 </Link>
-                <button onClick={() => handleRemoveUser(user.id)}>
+                <button onClick={() => handleRemoveTask(task.id)}>
                   <FontAwesomeIcon
                     icon={faTrashCan}
                     className="text-[20px] text-[#301d8b]"
@@ -83,22 +99,22 @@ const UserList = () => {
             </div>
           </div>
         </div>
-        <DropArea onDrop={() => onDrop(user.column, index + 1)} />
+        <DropArea onDrop={() => onDrop(task.column, index + 1)} />
       </React.Fragment>
     ));
 
-  const filteredUsers = users.filter((user) => {
-    const stateMatch = filterState === "all" || user.state === filterState;
+  const filteredUsers = userTasks.filter((task) => {
+    const stateMatch = filterState === "all" || task.state === filterState;
     const priorityMatch =
-      filterPriority === "all" || user.priority === filterPriority;
-    const nameMatch = user.title
+      filterPriority === "all" || task.priority === filterPriority;
+    const nameMatch = task.title
       ?.toLowerCase()
       .includes(searchQuery.toLowerCase());
     return stateMatch && priorityMatch && nameMatch;
   });
 
-  const getUsersByState = (state) =>
-    filteredUsers.filter((user) => user.state === state);
+  const getTaskByState = (state) =>
+    filteredUsers.filter((task) => task.state === state);
 
   return (
     <div className="container w-[90%] flex flex-col justify-center py-12">
@@ -145,8 +161,8 @@ const UserList = () => {
           To-Do
           <div className="list text-[25px]">
             <DropArea onDrop={() => onDrop(1, 0)} />
-            {getUsersByState("todo").length ? (
-              <>{renderCard(getUsersByState("todo"))}</>
+            {getTaskByState("todo").length ? (
+              <>{renderCard(getTaskByState("todo"))}</>
             ) : (
               <p className="text-center col-span-2 text-gray-700 font-medium text-[18px]">
                 No Tasks
@@ -163,10 +179,10 @@ const UserList = () => {
           Doing
           <div className="list text-[25px]">
             <DropArea onDrop={() => onDrop(2, 0)} />
-            {getUsersByState("doing").length ? (
-              <>{renderCard(getUsersByState("doing"))}</>
+            {getTaskByState("doing").length ? (
+              <>{renderCard(getTaskByState("doing"))}</>
             ) : (
-              <p className="text-center col-span-2 text-gray-700 font-medium font-medium text-[18px]">
+              <p className="text-center col-span-2 text-gray-700 font-medium text-[18px]">
                 No Tasks
               </p>
             )}
@@ -182,8 +198,8 @@ const UserList = () => {
             <div className="list text-[25px]">
               <DropArea onDrop={() => onDrop(3, 0)} />
 
-              {getUsersByState("done").length ? (
-                <>{renderCard(getUsersByState("done"))}</>
+              {getTaskByState("done").length ? (
+                <>{renderCard(getTaskByState("done"))}</>
               ) : (
                 <p className="text-center col-span-2 text-gray-700 font-medium text-[18px]">
                   No Tasks
@@ -192,7 +208,7 @@ const UserList = () => {
             </div>
           </div>
           <Link
-            to="/add-user"
+            to="/add-task"
             className="bg-[#301d8b] text-white font-medium leading-6 text-xl mt-5 px-12 py-3 rounded-md self-end "
           >
             Add Task
@@ -203,4 +219,4 @@ const UserList = () => {
   );
 };
 
-export default UserList;
+export default TaskList;
