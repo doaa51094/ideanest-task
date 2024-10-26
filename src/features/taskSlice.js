@@ -9,7 +9,6 @@ const taskSlice = createSlice({
     addTask: (state, action) => {
       state.push(action.payload);
       localStorage.setItem("tasks", JSON.stringify(state)); 
-      console.log(action.payload);
     },
     updateTask: (state, action) => {
       const {updatedTasks} = action.payload;

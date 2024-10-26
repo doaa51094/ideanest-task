@@ -35,7 +35,6 @@ const AddTask = () => {
     resolver: yupResolver(validationSchema),
   });
   const {  user } = useKindeAuth();
-  console.log(user?.id,'❤️❤️❤️');
 
   const onSubmit = (data) => {
     if (!imagePreview) {
