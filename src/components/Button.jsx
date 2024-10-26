@@ -1,8 +1,9 @@
 
 const Button = ({ onClick, children }) => {
     return (
-      <button className="bg-indigo-600 text-white py-2 px-6 my-10 rounded hover:bg-indigo-700"
+      <button
         onClick={onClick}
+        className="bg-[#301d8b] text-white font-medium leading-6 text-xl mt-5 px-12 py-3 rounded-md self-end "
       >
         {children}
       </button>

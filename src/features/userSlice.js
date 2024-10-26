@@ -8,17 +8,12 @@ const userSlice = createSlice({
   reducers: {
     addUser: (state, action) => {
       state.push(action.payload);
+      console.log(action.payload);
     },
     editUser: (state, action) => {
-      const { id, image, title, description, priority, state: taskState } = action.payload; // Rename state to taskState
-      const existingUser = state.find(user => user.id === id);
-      if (existingUser) {
-        existingUser.image = image;
-        existingUser.title = title;
-        existingUser.description = description;
-        existingUser.priority = priority;
-        existingUser.state = taskState; // Use the renamed variable here
-      }
+      const {updatedTasks} = action.payload; // Rename state to taskState
+      const existingUser = state.find(user => user.id === updatedTasks?.id);
+   return updatedTasks;
     },
     deleteUser: (state, action) => {
       const { id } = action.payload;
@@ -26,7 +21,7 @@ const userSlice = createSlice({
       if (existingUser) {
         return state.filter(user => user.id !== id);
       }
-    }
+    },
   }
 });
 

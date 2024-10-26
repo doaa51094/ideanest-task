@@ -3,77 +3,102 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as Yup from "yup";
 import { v4 as uuidv4 } from "uuid";
-import Button from "./../components/Button";
-import TextField from "./../components/TextField";
-import SelectField from './../components/SelectField';
+import Button from "../components/Button";
+import TextField from "../components/TextField";
+import SelectField from "../components/SelectField";
 import { addUser } from "./userSlice";
-import { useNavigate } from 'react-router-dom';
-import React, { useState } from 'react';
+import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
 
 const AddTask = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [imagePreview, setImagePreview] = useState(null); // State for image preview
 
-  // Define validation schema with Yup
+  // Updated validation schema
   const validationSchema = Yup.object().shape({
-    // image is now handled differently
     title: Yup.string().required("Title is required"),
     description: Yup.string().required("Description is required"),
     priority: Yup.string().required("Priority is required"),
     state: Yup.string().required("State is required"),
+    image: Yup.mixed().required("Image is required"), // Ensure image is required
   });
 
-  // Setup React Hook Form
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
+    setError, // Add setError to set custom errors
   } = useForm({
     resolver: yupResolver(validationSchema),
   });
 
   const onSubmit = (data) => {
-    console.log("Form submitted successfully", data);
-    dispatch(addUser({
-      id: uuidv4(),
-      title: data.title,
-      image: imagePreview, // Use the image preview URL
-      description: data.description,
-      priority: data.priority,
-      state: data.state,
-    }));
+    if (!imagePreview) {
+      setError("image", { type: "manual", message: "Image is required" }); // Set custom error for image
+      return; // Prevent submission if there's no image
+    }
+
+    const column = data.state === "todo" ? 1 : data.state === "doing" ? 2 : 3;
+    dispatch(
+      addUser({
+        id: uuidv4(),
+        title: data.title,
+        image: imagePreview,
+        description: data.description,
+        priority: data.priority,
+        state: data.state,
+        column,
+      })
+    );
     reset();
-    setImagePreview(null); // Reset image preview
-    navigate('/');
+    setImagePreview(null);
+    navigate("/");
   };
 
   const handleImageChange = (event) => {
-    const file = event.target.files[0]; // Get the file
+    const file = event.target.files[0];
     if (file) {
-      const reader = new FileReader(); // Create a FileReader to read the file
+      const reader = new FileReader();
       reader.onloadend = () => {
-        setImagePreview(reader.result); // Set the image preview URL
+        setImagePreview(reader.result);
+        setValue("image", file);
       };
-      reader.readAsDataURL(file); // Read the file as a data URL
+      reader.readAsDataURL(file);
+    } else {
+      setImagePreview(null);
+      setValue("image", null);
     }
   };
 
   return (
-    <div className="mt-10 max-w-xl mx-auto">
+    <div className="mt-10 bg-[#d5ccff] w-1/3 p-7 rounded-md shadow-md">
+      <h2 className="text-center text-[#301d8b] text-[25px] font-medium">
+        Create New Task
+      </h2>
+
       <form onSubmit={handleSubmit(onSubmit)}>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Image</label>
+        <div className="mb-2">
+          <label className="block text-sm font-medium">Image</label>
           <input
             type="file"
             accept="image/*"
             {...register("image")}
-            onChange={handleImageChange} // Handle image change
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            onChange={handleImageChange}
+            className="mt-1 border rounded p-2 w-full bg-white"
           />
-          {errors.image && <p className="text-red-500">{errors.image.message}</p>}
-          {imagePreview && <img src={imagePreview} alt="Preview" className="mt-2 w-32 h-32 object-cover" />} {/* Image preview */}
+          {errors.image && (
+            <p className="text-red-500">{errors.image.message}</p>
+          )}
+          {imagePreview && (
+            <img
+              src={imagePreview}
+              alt="Preview"
+              className="mt-2 w-1/2 h-32 object-cover"
+            />
+          )}
         </div>
 
         <TextField
@@ -88,7 +113,9 @@ const AddTask = () => {
           {...register("description")}
           inputProps={{ type: "text", placeholder: "Task Description" }}
         />
-        {errors.description && <p className="text-red-500">{errors.description.message}</p>}
+        {errors.description && (
+          <p className="text-red-500">{errors.description.message}</p>
+        )}
 
         <SelectField
           label="Priority"
@@ -99,7 +126,9 @@ const AddTask = () => {
             { value: "high", label: "High" },
           ]}
         />
-        {errors.priority && <p className="text-red-500">{errors.priority.message}</p>}
+        {errors.priority && (
+          <p className="text-red-500">{errors.priority.message}</p>
+        )}
 
         <SelectField
           label="State"
@@ -111,8 +140,9 @@ const AddTask = () => {
           ]}
         />
         {errors.state && <p className="text-red-500">{errors.state.message}</p>}
-
-        <Button type="submit">Create Task</Button>
+        <div className="flex justify-center">
+          <Button type="submit">Create Task</Button>
+        </div>
       </form>
     </div>
   );
