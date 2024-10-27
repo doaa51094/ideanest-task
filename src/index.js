@@ -17,8 +17,8 @@ root.render(
     <KindeProvider
 		clientId="73e38fda7e5948ce98bbe82c8bad5c59"
 		domain="https://ideanest2588.kinde.com"
-		redirectUri="http://localhost:3000"
-		logoutUri="http://localhost:3000"
+		redirectUri="https://ideanest-task-one.vercel.app/"
+		logoutUri="https://ideanest-task-one.vercel.app/"
 	>
       <Provider store={store}>
         <App />
