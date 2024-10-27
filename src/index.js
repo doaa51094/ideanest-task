@@ -1,3 +1,4 @@
+// index.js
 import React from 'react';
 import * as ReactDOMClient from 'react-dom/client';
 import './index.css';
@@ -14,15 +15,15 @@ const root = ReactDOMClient.createRoot(container);
 root.render(
   <React.StrictMode>
     <BrowserRouter>
-    <KindeProvider
-		clientId="73e38fda7e5948ce98bbe82c8bad5c59"
-		domain="https://ideanest2588.kinde.com"
-		redirectUri="https://ideanest-task-one.vercel.app/"
-		logoutUri="https://ideanest-task-one.vercel.app/"
-	>
-      <Provider store={store}>
-        <App />
-      </Provider>
+      <KindeProvider
+        clientId={import.meta.env.VITE_KINDE_CLIENT_ID}
+        domain={import.meta.env.VITE_KINDE_DOMAIN}
+        redirectUri={import.meta.env.VITE_KINDE_REDIRECT_URL}
+        logoutUri={import.meta.env.VITE_KINDE_LOGOUT_URL}
+      >
+        <Provider store={store}>
+          <App />
+        </Provider>
       </KindeProvider>
     </BrowserRouter>
   </React.StrictMode>
